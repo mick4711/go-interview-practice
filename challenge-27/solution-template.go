@@ -1,6 +1,9 @@
 package generics
 
-import "errors"
+import (
+	"errors"
+	"slices"
+)
 
 // ErrEmptyCollection is returned when an operation cannot be performed on an empty collection
 var ErrEmptyCollection = errors.New("collection is empty")
@@ -17,14 +20,18 @@ type Pair[T, U any] struct {
 
 // NewPair creates a new pair with the given values
 func NewPair[T, U any](first T, second U) Pair[T, U] {
-	// TODO: Implement this function
-	return Pair[T, U]{}
+	return Pair[T, U]{
+		First:  first,
+		Second: second,
+	}
 }
 
 // Swap returns a new pair with the elements swapped
 func (p Pair[T, U]) Swap() Pair[U, T] {
-	// TODO: Implement this method
-	return Pair[U, T]{}
+	return Pair[U, T]{
+		First:  p.Second,
+		Second: p.First,
+	}
 }
 
 //
@@ -33,46 +40,58 @@ func (p Pair[T, U]) Swap() Pair[U, T] {
 
 // Stack is a generic Last-In-First-Out (LIFO) data structure
 type Stack[T any] struct {
-	// TODO: Add necessary fields
+	Values []T
 }
 
 // NewStack creates a new empty stack
 func NewStack[T any]() *Stack[T] {
-	// TODO: Implement this function
-	return nil
+	return &Stack[T]{
+		Values: []T{},
+	}
 }
 
 // Push adds an element to the top of the stack
 func (s *Stack[T]) Push(value T) {
-	// TODO: Implement this method
+	s.Values = append(s.Values, value)
 }
 
 // Pop removes and returns the top element from the stack
 // Returns an error if the stack is empty
 func (s *Stack[T]) Pop() (T, error) {
-	// TODO: Implement this method
 	var zero T
-	return zero, nil
+
+	if s.IsEmpty() {
+		return zero, ErrEmptyCollection
+	}
+
+	l := len(s.Values)
+	v := s.Values[l-1]
+
+	s.Values = slices.Delete(s.Values, l-1, l)
+
+	return v, nil
 }
 
 // Peek returns the top element without removing it
 // Returns an error if the stack is empty
 func (s *Stack[T]) Peek() (T, error) {
-	// TODO: Implement this method
 	var zero T
-	return zero, nil
+
+	if s.IsEmpty() {
+		return zero, ErrEmptyCollection
+	}
+
+	return s.Values[len(s.Values)-1], nil
 }
 
 // Size returns the number of elements in the stack
 func (s *Stack[T]) Size() int {
-	// TODO: Implement this method
-	return 0
+	return len(s.Values)
 }
 
 // IsEmpty returns true if the stack contains no elements
 func (s *Stack[T]) IsEmpty() bool {
-	// TODO: Implement this method
-	return true
+	return len(s.Values) == 0
 }
 
 //
