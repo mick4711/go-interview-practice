@@ -1,6 +1,7 @@
 package generics
 
 import (
+	"cmp"
 	"errors"
 	"slices"
 )
@@ -100,46 +101,56 @@ func (s *Stack[T]) IsEmpty() bool {
 
 // Queue is a generic First-In-First-Out (FIFO) data structure
 type Queue[T any] struct {
-	// TODO: Add necessary fields
+	Values []T
 }
 
 // NewQueue creates a new empty queue
 func NewQueue[T any]() *Queue[T] {
-	// TODO: Implement this function
-	return nil
+	return &Queue[T]{
+		Values: []T{},
+	}
 }
 
 // Enqueue adds an element to the end of the queue
 func (q *Queue[T]) Enqueue(value T) {
-	// TODO: Implement this method
+	q.Values = append(q.Values, value)
 }
 
 // Dequeue removes and returns the front element from the queue
 // Returns an error if the queue is empty
 func (q *Queue[T]) Dequeue() (T, error) {
-	// TODO: Implement this method
 	var zero T
-	return zero, nil
+
+	if q.IsEmpty() {
+		return zero, ErrEmptyCollection
+	}
+
+	v := q.Values[0]
+	q.Values = slices.Delete(q.Values, 0, 1)
+
+	return v, nil
 }
 
 // Front returns the front element without removing it
 // Returns an error if the queue is empty
 func (q *Queue[T]) Front() (T, error) {
-	// TODO: Implement this method
 	var zero T
-	return zero, nil
+
+	if q.IsEmpty() {
+		return zero, ErrEmptyCollection
+	}
+
+	return q.Values[0], nil
 }
 
 // Size returns the number of elements in the queue
 func (q *Queue[T]) Size() int {
-	// TODO: Implement this method
-	return 0
+	return len(q.Values)
 }
 
 // IsEmpty returns true if the queue contains no elements
 func (q *Queue[T]) IsEmpty() bool {
-	// TODO: Implement this method
-	return true
+	return len(q.Values) == 0
 }
 
 //
@@ -148,59 +159,98 @@ func (q *Queue[T]) IsEmpty() bool {
 
 // Set is a generic collection of unique elements
 type Set[T comparable] struct {
-	// TODO: Add necessary fields
+	Values []T
 }
 
 // NewSet creates a new empty set
 func NewSet[T comparable]() *Set[T] {
-	// TODO: Implement this function
-	return nil
+	return &Set[T]{
+		Values: []T{},
+	}
 }
 
 // Add adds an element to the set if it's not already present
 func (s *Set[T]) Add(value T) {
-	// TODO: Implement this method
+	if !s.Contains(value) {
+		s.Values = append(s.Values, value)
+	}
 }
 
 // Remove removes an element from the set if it exists
 func (s *Set[T]) Remove(value T) {
-	// TODO: Implement this method
+	i := slices.Index(s.Values, value)
+	if i >= 0 {
+		s.Values = slices.Delete(s.Values, i, i+1)
+	}
 }
 
 // Contains returns true if the set contains the given element
 func (s *Set[T]) Contains(value T) bool {
-	// TODO: Implement this method
-	return false
+	return slices.Contains(s.Values, value)
 }
 
 // Size returns the number of elements in the set
 func (s *Set[T]) Size() int {
-	// TODO: Implement this method
-	return 0
+	return len(s.Values)
 }
 
 // Elements returns a slice containing all elements in the set
 func (s *Set[T]) Elements() []T {
-	// TODO: Implement this method
-	return nil
+	return slices.Clone(s.Values)
 }
 
 // Union returns a new set containing all elements from both sets
 func Union[T comparable](s1, s2 *Set[T]) *Set[T] {
-	// TODO: Implement this function
-	return nil
+	// allocate result slice with enough capacity
+	res := make([]T, 0, s1.Size()+s2.Size())
+
+	// fill result with contents of first slice
+	res = append(res, s1.Values...)
+
+	// append elements from 2nd slice if not already members of first slice
+	for _, v := range s2.Values {
+		if !s1.Contains(v) {
+			res = append(res, v)
+		}
+	}
+
+	return &Set[T]{
+		Values: res,
+	}
 }
 
 // Intersection returns a new set containing only elements that exist in both sets
 func Intersection[T comparable](s1, s2 *Set[T]) *Set[T] {
-	// TODO: Implement this function
-	return nil
+	// init empty result slice
+	res := []T{}
+
+	// iter thru s1 capturing values in s2
+	for _, v := range s1.Values {
+		if slices.Contains(s2.Values, v) {
+			res = append(res, v)
+		}
+	}
+
+	return &Set[T]{
+		Values: res,
+	}
 }
 
 // Difference returns a new set with elements in s1 that are not in s2
 func Difference[T comparable](s1, s2 *Set[T]) *Set[T] {
-	// TODO: Implement this function
-	return nil
+	// init empty result slice
+	res := []T{}
+
+	// iter thru s1 capturing values not in s2
+	for _, v := range s1.Values {
+		if !slices.Contains(s2.Values, v) {
+			res = append(res, v)
+		}
+	}
+
+	return &Set[T]{
+		Values: res,
+	}
 }
 
 //
@@ -209,36 +259,54 @@ func Difference[T comparable](s1, s2 *Set[T]) *Set[T] {
 
 // Filter returns a new slice containing only the elements for which the predicate returns true
 func Filter[T any](slice []T, predicate func(T) bool) []T {
-	// TODO: Implement this function
-	return nil
+	res := make([]T, 0, len(slice))
+
+	for _, v := range slice {
+		if predicate(v) {
+			res = append(res, v)
+		}
+	}
+
+	return res
 }
 
 // Map applies a function to each element in a slice and returns a new slice with the results
 func Map[T, U any](slice []T, mapper func(T) U) []U {
-	// TODO: Implement this function
-	return nil
+	res := make([]U, 0, len(slice))
+
+	for _, v := range slice {
+		res = append(res, mapper(v))
+	}
+
+	return res
 }
 
 // Reduce reduces a slice to a single value by applying a function to each element
 func Reduce[T, U any](slice []T, initial U, reducer func(U, T) U) U {
-	// TODO: Implement this function
-	return initial
+	res := initial
+
+	for _, v := range slice {
+		res = reducer(res, v)
+	}
+
+	return res
 }
 
 // Contains returns true if the slice contains the given element
 func Contains[T comparable](slice []T, element T) bool {
-	// TODO: Implement this function
-	return false
+	return slices.Contains(slice, element)
 }
 
 // FindIndex returns the index of the first occurrence of the given element or -1 if not found
 func FindIndex[T comparable](slice []T, element T) int {
-	// TODO: Implement this function
-	return -1
+	return slices.Index(slice, element)
 }
 
 // RemoveDuplicates returns a new slice with duplicate elements removed, preserving order
-func RemoveDuplicates[T comparable](slice []T) []T {
-	// TODO: Implement this function
-	return nil
+func RemoveDuplicates[T cmp.Ordered](slice []T) []T {
+	res := slices.Clone(slice)
+	slices.Sort(res)
+	res = slices.Compact(res)
+
+	return res
 }
