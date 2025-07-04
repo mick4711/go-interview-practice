@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"strings"
 	"time"
 )
@@ -27,9 +28,26 @@ func SlowSort(data []int) []int {
 // OptimizedSort is your optimized version of SlowSort
 // It should produce identical results but perform better
 func OptimizedSort(data []int) []int {
-	// TODO: Implement a more efficient sorting algorithm
 	// Hint: Consider using sort package or a more efficient algorithm
-	return SlowSort(data) // Replace this with your optimized implementation
+
+	// sort.Slice(data, func(i, j int) bool {
+	// 	return data[i] < data[j]
+	// })
+
+	slices.Sort(data)
+/*
+go test -timeout 30s -run="SlowSort|OptimizedSort"
+go test -benchmem -run=^$ -bench="SlowSort|OptimizedSort"
+
+BenchmarkSlowSort/10-8           8783551             123.9 ns/op            80 B/op          1 allocs/op
+BenchmarkSlowSort/100-8           107521             11458 ns/op           896 B/op          1 allocs/op
+BenchmarkSlowSort/1000-8             607           1653977 ns/op          8192 B/op          1 allocs/op
+BenchmarkOptimizedSort/10-8     63324622             18.60 ns/op             0 B/op          0 allocs/op
+BenchmarkOptimizedSort/100-8     9154833             133.4 ns/op             0 B/op          0 allocs/op
+BenchmarkOptimizedSort/1000-8    1000000              1162 ns/op             0 B/op          0 allocs/op
+*/
+
+	return data
 }
 
 // InefficientStringBuilder builds a string by repeatedly concatenating
