@@ -8,7 +8,6 @@ import (
 )
 
 // SlowSort sorts a slice of integers using a very inefficient algorithm (bubble sort)
-// TODO: Optimize this function to be more efficient
 func SlowSort(data []int) []int {
 	// Make a copy to avoid modifying the original
 	result := make([]int, len(data))
@@ -135,6 +134,11 @@ func OptimizedCalculation(n int) int {
 	// Hint: Consider memoization or avoiding redundant calculations
 	return ExpensiveCalculation(n) // Replace this with your optimized implementation
 }
+
+
+
+// TODO try out benchstat tool https://pkg.go.dev/golang.org/x/perf/cmd/benchstat 
+
 
 // HighAllocationSearch searches for all occurrences of a substring and creates a map with their positions
 // TODO: Optimize this function to reduce allocations
