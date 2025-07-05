@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "bytes"
 	"slices"
 	"strings"
 	"time"
@@ -35,23 +36,28 @@ func OptimizedSort(data []int) []int {
 	// })
 
 	slices.Sort(data)
-/*
-go test -timeout 30s -run="SlowSort|OptimizedSort"
-go test -benchmem -run=^$ -bench="SlowSort|OptimizedSort"
 
-BenchmarkSlowSort/10-8           8783551             123.9 ns/op            80 B/op          1 allocs/op
-BenchmarkSlowSort/100-8           107521             11458 ns/op           896 B/op          1 allocs/op
-BenchmarkSlowSort/1000-8             607           1653977 ns/op          8192 B/op          1 allocs/op
-BenchmarkOptimizedSort/10-8     63324622             18.60 ns/op             0 B/op          0 allocs/op
-BenchmarkOptimizedSort/100-8     9154833             133.4 ns/op             0 B/op          0 allocs/op
-BenchmarkOptimizedSort/1000-8    1000000              1162 ns/op             0 B/op          0 allocs/op
-*/
+	/*
+			   go test -v -timeout 30s -run="SlowSort|OptimizedSort"
+			   go test -benchmem -bench="SlowSort|OptimizedSort"
+
+			   BenchmarkSlowSort/10-8           8783551             123.9 ns/op            80 B/op          1 allocs/op
+			   BenchmarkSlowSort/100-8           107521             11458 ns/op           896 B/op          1 allocs/op
+			   BenchmarkSlowSort/1000-8             607           1653977 ns/op          8192 B/op          1 allocs/op
+		sort.Slice
+			   BenchmarkOptimizedSort/10-8      9244336             159.2 ns/op            56 B/op          2 allocs/op
+			   BenchmarkOptimizedSort/100-8     2408090             532.3 ns/op            56 B/op          2 allocs/op
+			   BenchmarkOptimizedSort/1000-8     313731              3719 ns/op            56 B/op          2 allocs/op
+		slices.Sort
+			   BenchmarkOptimizedSort/10-8     63324622             18.60 ns/op             0 B/op          0 allocs/op
+			   BenchmarkOptimizedSort/100-8     9154833             133.4 ns/op             0 B/op          0 allocs/op
+			   BenchmarkOptimizedSort/1000-8    1000000              1162 ns/op             0 B/op          0 allocs/op
+	*/
 
 	return data
 }
 
 // InefficientStringBuilder builds a string by repeatedly concatenating
-// TODO: Optimize this function to be more efficient
 func InefficientStringBuilder(parts []string, repeatCount int) string {
 	result := ""
 
@@ -67,9 +73,35 @@ func InefficientStringBuilder(parts []string, repeatCount int) string {
 // OptimizedStringBuilder is your optimized version of InefficientStringBuilder
 // It should produce identical results but perform better
 func OptimizedStringBuilder(parts []string, repeatCount int) string {
-	// TODO: Implement a more efficient string building method
 	// Hint: Consider using strings.Builder or bytes.Buffer
-	return InefficientStringBuilder(parts, repeatCount) // Replace this with your optimized implementation
+
+	// var b bytes.Buffer // A Buffer needs no initialization.
+	var b strings.Builder
+
+	for range repeatCount {
+		for _, part := range parts {
+			b.Write([]byte(part))
+		}
+	}
+
+	/*
+			go test -v -timeout 30s -run="StringBuilder"
+			go test -benchmem -bench="StringBuilder"
+
+			BenchmarkInefficientStringBuilder/Small-8      836750         1385 ns/op        1912 B/op         29 allocs/op
+			BenchmarkInefficientStringBuilder/Medium-8       6750       187868 ns/op      518168 B/op        699 allocs/op
+			BenchmarkInefficientStringBuilder/Large-8          73     17936059 ns/op    70153736 B/op       7003 allocs/op
+		bytes.Buffer
+			BenchmarkOptimizedStringBuilder/Small-8       3746812          306.2 ns/op       304 B/op          3 allocs/op
+			BenchmarkOptimizedStringBuilder/Medium-8       228163         4949 ns/op        5440 B/op          7 allocs/op
+			BenchmarkOptimizedStringBuilder/Large-8         22855        54112 ns/op       84544 B/op         11 allocs/op
+		strings.Builder
+			BenchmarkOptimizedStringBuilder/Small-8       4266385          289.4 ns/op       248 B/op          5 allocs/op
+			BenchmarkOptimizedStringBuilder/Medium-8       344193         3603 ns/op        3320 B/op          9 allocs/op
+			BenchmarkOptimizedStringBuilder/Large-8         25576        47915 ns/op       84728 B/op         18 allocs/op
+	*/
+
+	return b.String()
 }
 
 // ExpensiveCalculation performs a computation with redundant work
