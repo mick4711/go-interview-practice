@@ -130,15 +130,56 @@ func fibonacci(n int) int {
 // OptimizedCalculation is your optimized version of ExpensiveCalculation
 // It should produce identical results but perform better
 func OptimizedCalculation(n int) int {
-	// TODO: Implement a more efficient calculation method
 	// Hint: Consider memoization or avoiding redundant calculations
-	return ExpensiveCalculation(n) // Replace this with your optimized implementation
+	/*
+		go test -v -timeout 30s -run="Calculation"
+		go test -benchmem -bench="Calculation"
+
+		BenchmarkExpensiveCalculation/Small-8      2035190         595.9 ns/op     0 B/op     0 allocs/op
+		BenchmarkExpensiveCalculation/Medium-8       16122       75309 ns/op       0 B/op     0 allocs/op
+		BenchmarkExpensiveCalculation/Large-8          127     9544298 ns/op       0 B/op     0 allocs/op
+
+		BenchmarkOptimizedCalculation/Small-8      2366942       498.8 ns/op     328 B/op     3 allocs/op
+		BenchmarkOptimizedCalculation/Medium-8     1256305       949.1 ns/op     616 B/op     3 allocs/op
+		BenchmarkOptimizedCalculation/Large-8       755708      1451 ns/op      1192 B/op     3 allocs/op
+	*/
+	// return ExpensiveCalculation(n) // Replace this with your optimized implementation
+	if n <= 0 {
+		return 0
+	}
+
+	sum := 0
+	memo := make(map[int]int, n)
+
+	for i := 1; i <= n; i++ {
+		sum += fibonacciMem(i, memo)
+	}
+
+	return sum
 }
 
+// Helper function that computes the fibonacci number at position n using memoization
+func fibonacciMem(n int, memo map[int]int) int {
+	if n <= 1 {
+		return n
+	}
 
+	res1, ok := memo[n-1]
+	if !ok {
+		res1 = fibonacciMem(n-1, memo)
+		memo[n-1] = res1
+	}
 
-// TODO try out benchstat tool https://pkg.go.dev/golang.org/x/perf/cmd/benchstat 
+	res2, ok := memo[n-2]
+	if !ok {
+		res2 = fibonacciMem(n-2, memo)
+		memo[n-2] = res2
+	}
 
+	return res1 + res2
+}
+
+// TODO try out benchstat tool https://pkg.go.dev/golang.org/x/perf/cmd/benchstat
 
 // HighAllocationSearch searches for all occurrences of a substring and creates a map with their positions
 // TODO: Optimize this function to reduce allocations
