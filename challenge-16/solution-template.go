@@ -223,7 +223,38 @@ func HighAllocationSearch(text, substr string) map[int]string {
 func OptimizedSearch(text, substr string) map[int]string {
 	// TODO: Implement a more efficient search method with fewer allocations
 	// Hint: Consider avoiding temporary string allocations and reusing memory
-	return HighAllocationSearch(text, substr) // Replace this with your optimized implementation
+	/*
+		go test -v -timeout 30s -run="Search"
+		go test -benchmem -bench="Search"
+
+		BenchmarkHighAllocationSearch/Short_Text-8     3013060        393.6 ns/op      304 B/op     3 allocs/op
+		BenchmarkHighAllocationSearch/Medium_Text-8     370346       3083 ns/op       1192 B/op     6 allocs/op
+		BenchmarkHighAllocationSearch/Long_Text-8        40744      29822 ns/op      11816 B/op    12 allocs/op
+		
+	*/
+	result := make(map[int]string)
+
+	// Convert to lowercase for case-insensitive search
+	lowerText := strings.ToLower(text)
+	lowerSubstr := strings.ToLower(substr)
+
+	for i := 0; i < len(lowerText); i++ {
+		// Check if we can fit the substring starting at position i
+		if i+len(lowerSubstr) <= len(lowerText) {
+			// Extract the potential match
+			potentialMatch := lowerText[i : i+len(lowerSubstr)]
+
+			// Check if it matches
+			if potentialMatch == lowerSubstr {
+				// Store the original case version
+				result[i] = text[i : i+len(substr)]
+			}
+		}
+	}
+
+	return result
+
+	// return HighAllocationSearch(text, substr) // Replace this with your optimized implementation
 }
 
 // A function to simulate CPU-intensive work for benchmarking
