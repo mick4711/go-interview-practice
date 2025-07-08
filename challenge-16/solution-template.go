@@ -132,20 +132,24 @@ func fibonacci(n int) int {
 func OptimizedCalculation(n int) int {
 	// Hint: Consider memoization or avoiding redundant calculations
 	/*
-		go test -v -timeout 30s -run="Calculation"
-		go test -benchmem -bench="Calculation"
+			go test -v -timeout 30s -run="Calculation"
+			go test -benchmem -bench="Calculation"
 
-		BenchmarkExpensiveCalculation/Small-8      2035190         595.9 ns/op     0 B/op     0 allocs/op
-		BenchmarkExpensiveCalculation/Medium-8       16122       75309 ns/op       0 B/op     0 allocs/op
-		BenchmarkExpensiveCalculation/Large-8          127     9544298 ns/op       0 B/op     0 allocs/op
-	Memoize
-		BenchmarkOptimizedCalculation/Small-8      2366942       498.8 ns/op     328 B/op     3 allocs/op
-		BenchmarkOptimizedCalculation/Medium-8     1256305       949.1 ns/op     616 B/op     3 allocs/op
-		BenchmarkOptimizedCalculation/Large-8       755708      1451 ns/op      1192 B/op     3 allocs/op
+			BenchmarkExpensiveCalculation/Small-8      2035190         595.9 ns/op     0 B/op     0 allocs/op
+			BenchmarkExpensiveCalculation/Medium-8       16122       75309 ns/op       0 B/op     0 allocs/op
+			BenchmarkExpensiveCalculation/Large-8          127     9544298 ns/op       0 B/op     0 allocs/op
+		Memoize
+			BenchmarkOptimizedCalculation/Small-8      2366942       498.8 ns/op     328 B/op     3 allocs/op
+			BenchmarkOptimizedCalculation/Medium-8     1256305       949.1 ns/op     616 B/op     3 allocs/op
+			BenchmarkOptimizedCalculation/Large-8       755708      1451 ns/op      1192 B/op     3 allocs/op
+		Iterate
+			BenchmarkOptimizedCalculation/Small-8    340811240         3.555 ns/op     0 B/op     0 allocs/op
+			BenchmarkOptimizedCalculation/Medium-8   201614457         6.047 ns/op     0 B/op     0 allocs/op
+			BenchmarkOptimizedCalculation/Large-8    144884427         8.462 ns/op     0 B/op     0 allocs/op
 	*/
 	// return ExpensiveCalculation(n) // Replace this with your optimized implementation
-	if n <= 0 {
-		return 0
+	if n <= 1 {
+		return n
 	}
 
 	sum := 0
@@ -155,19 +159,15 @@ func OptimizedCalculation(n int) int {
 	// 	sum += fibonacciMem(i, memo)
 	// }
 
-	prev1 := 1
-	prev2 := 0
+	// Iterate
+	prev1, prev2 := 1, 0
 	for i := 1; i <= n; i++ {
-		curr := prev1 + prev2
-		prev2 = prev1
-		prev1 = curr
-		sum += curr
+		prev2, prev1 = prev1, prev2+prev1
+		sum += prev2
 	}
 
-	
 	return sum
 }
-
 
 // Helper function that computes the fibonacci number at position n using memoization
 func fibonacciMem(n int, memo map[int]int) int {
