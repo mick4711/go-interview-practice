@@ -230,7 +230,7 @@ func OptimizedSearch(text, substr string) map[int]string {
 		BenchmarkHighAllocationSearch/Short_Text-8     3013060        393.6 ns/op      304 B/op     3 allocs/op
 		BenchmarkHighAllocationSearch/Medium_Text-8     370346       3083 ns/op       1192 B/op     6 allocs/op
 		BenchmarkHighAllocationSearch/Long_Text-8        40744      29822 ns/op      11816 B/op    12 allocs/op
-		
+
 	*/
 	result := make(map[int]string)
 
@@ -238,19 +238,36 @@ func OptimizedSearch(text, substr string) map[int]string {
 	lowerText := strings.ToLower(text)
 	lowerSubstr := strings.ToLower(substr)
 
-	for i := 0; i < len(lowerText); i++ {
-		// Check if we can fit the substring starting at position i
-		if i+len(lowerSubstr) <= len(lowerText) {
-			// Extract the potential match
-			potentialMatch := lowerText[i : i+len(lowerSubstr)]
+	lt := len(lowerText)
+	ls := len(lowerSubstr)
+	left := 0
+	for left < lt {
+		i := strings.Index(lowerText[left:], lowerSubstr)
+		if i < 0 {
+			break
+		}
+		left += i
+		result[left] = text[left : left+ls]
+		left += ls
+	}
 
-			// Check if it matches
-			if potentialMatch == lowerSubstr {
-				// Store the original case version
-				result[i] = text[i : i+len(substr)]
+	/*
+		lt := len(lowerText)
+		ls := len(lowerSubstr)
+		for i := 0; i < lt; i++ {
+			// Check if we can fit the substring starting at position i
+			if i+ls <= lt {
+				// Extract the potential match
+				potentialMatch := lowerText[i : i+ls]
+
+				// Check if it matches
+				if potentialMatch == lowerSubstr {
+					// Store the original case version
+					result[i] = text[i : i+ls]
+				}
 			}
 		}
-	}
+	*/
 
 	return result
 
