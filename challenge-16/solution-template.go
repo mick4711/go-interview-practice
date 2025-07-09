@@ -2,6 +2,7 @@ package main
 
 import (
 	// "bytes"
+	// index/suffixarray
 	"slices"
 	"strings"
 	"time"
@@ -153,11 +154,15 @@ func OptimizedCalculation(n int) int {
 	}
 
 	sum := 0
-	// memo := make(map[int]int, n)
 
-	// for i := 1; i <= n; i++ {
-	// 	sum += fibonacciMem(i, memo)
-	// }
+	// Memoize
+	/*
+		memo := make(map[int]int, n)
+
+		for i := 1; i <= n; i++ {
+			sum += fibonacciMem(i, memo)
+		}
+	*/
 
 	// Iterate
 	prev1, prev2 := 1, 0
@@ -193,7 +198,6 @@ func fibonacciMem(n int, memo map[int]int) int {
 // TODO try out benchstat tool https://pkg.go.dev/golang.org/x/perf/cmd/benchstat
 
 // HighAllocationSearch searches for all occurrences of a substring and creates a map with their positions
-// TODO: Optimize this function to reduce allocations
 func HighAllocationSearch(text, substr string) map[int]string {
 	result := make(map[int]string)
 
@@ -221,16 +225,22 @@ func HighAllocationSearch(text, substr string) map[int]string {
 // OptimizedSearch is your optimized version of HighAllocationSearch
 // It should produce identical results but perform better with fewer allocations
 func OptimizedSearch(text, substr string) map[int]string {
-	// TODO: Implement a more efficient search method with fewer allocations
 	// Hint: Consider avoiding temporary string allocations and reusing memory
 	/*
-		go test -v -timeout 30s -run="Search"
-		go test -benchmem -bench="Search"
+			go test -v -timeout 30s -run="Search"
+			go test -benchmem -bench="Search"
 
-		BenchmarkHighAllocationSearch/Short_Text-8     3013060        393.6 ns/op      304 B/op     3 allocs/op
-		BenchmarkHighAllocationSearch/Medium_Text-8     370346       3083 ns/op       1192 B/op     6 allocs/op
-		BenchmarkHighAllocationSearch/Long_Text-8        40744      29822 ns/op      11816 B/op    12 allocs/op
-
+			BenchmarkHighAllocationSearch/Short_Text-8     3013060        393.6 ns/op      304 B/op     3 allocs/op
+			BenchmarkHighAllocationSearch/Medium_Text-8     370346       3083 ns/op       1192 B/op     6 allocs/op
+			BenchmarkHighAllocationSearch/Long_Text-8        40744      29822 ns/op      11816 B/op    12 allocs/op
+		index/suffixarray
+			BenchmarkOptimizedSearch/Short_Text-8           577708       1891 ns/op        616 B/op     7 allocs/op
+			BenchmarkOptimizedSearch/Medium_Text-8           91478      13193 ns/op       3880 B/op    10 allocs/op
+			BenchmarkOptimizedSearch/Long_Text-8              9838     102849 ns/op      36088 B/op    16 allocs/op
+		strings.Index
+			BenchmarkOptimizedSearch/Short_Text-8          5038852        237.9 ns/op      304 B/op     3 allocs/op
+			BenchmarkOptimizedSearch/Medium_Text-8          786710       1397 ns/op       1192 B/op     6 allocs/op
+			BenchmarkOptimizedSearch/Long_Text-8             94105      12672 ns/op      11816 B/op    12 allocs/op
 	*/
 	result := make(map[int]string)
 
@@ -252,6 +262,17 @@ func OptimizedSearch(text, substr string) map[int]string {
 	}
 
 	/*
+		ls := len(lowerSubstr)
+		// create index for some data
+		index := suffixarray.New([]byte(lowerText))
+
+		// lookup byte slice s
+		offsets1 := index.Lookup([]byte(lowerSubstr), -1) // the list of all indices where s occurs in data
+		for _, i := range offsets1 {
+			result[i] = text[i : i+ls]
+		}
+	*/
+	/*
 		lt := len(lowerText)
 		ls := len(lowerSubstr)
 		for i := 0; i < lt; i++ {
@@ -270,8 +291,6 @@ func OptimizedSearch(text, substr string) map[int]string {
 	*/
 
 	return result
-
-	// return HighAllocationSearch(text, substr) // Replace this with your optimized implementation
 }
 
 // A function to simulate CPU-intensive work for benchmarking
