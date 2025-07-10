@@ -37,55 +37,47 @@ func NewContextManager() ContextManager {
 
 // CreateCancellableContext creates a cancellable context
 func (cm *simpleContextManager) CreateCancellableContext(parent context.Context) (context.Context, context.CancelFunc) {
-	return (context.WithCancel(parent))
+	// TODO: Implement cancellable context creation
+	// Hint: Use context.WithCancel(parent)
+	panic("implement me")
 }
 
 // CreateTimeoutContext creates a context with timeout
 func (cm *simpleContextManager) CreateTimeoutContext(parent context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
-	return (context.WithTimeout(parent, timeout))
+	// TODO: Implement timeout context creation
+	// Hint: Use context.WithTimeout(parent, timeout)
+	panic("implement me")
 }
 
 // AddValue adds a key-value pair to the context
 func (cm *simpleContextManager) AddValue(parent context.Context, key, value interface{}) context.Context {
-	return (context.WithValue(parent, key, value))
+	// TODO: Implement value context creation
+	// Hint: Use context.WithValue(parent, key, value)
+	panic("implement me")
 }
 
 // GetValue retrieves a value from the context
 func (cm *simpleContextManager) GetValue(ctx context.Context, key interface{}) (interface{}, bool) {
-	if v := ctx.Value(key); v != nil {
-		return v, true
-	}
-	return nil, false
+	// TODO: Implement value retrieval from context
+	// Hint: Use ctx.Value(key) and check if it's nil
+	// Return the value and a boolean indicating if it was found
+	panic("implement me")
 }
 
 // ExecuteWithContext executes a task that can be cancelled via context
 func (cm *simpleContextManager) ExecuteWithContext(ctx context.Context, task func() error) error {
-	// channel to receive the err from task
-	ch := make(chan error, 1)
-
-	// call task in goroutine, result sent to ch
-	go func() {
-		ch <- task()
-	}()
-
-	// wait until either task returns via ch or ctx gets cancelled
-	select {
-	case err := <-ch:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	// TODO: Implement task execution with context cancellation
+	// Hint: Run the task in a goroutine and use select with ctx.Done()
+	// Return context error if cancelled, task error if task fails
+	panic("implement me")
 }
 
 // WaitForCompletion waits for a duration or until context is cancelled
 func (cm *simpleContextManager) WaitForCompletion(ctx context.Context, duration time.Duration) error {
-	// wait until either duration or ctx gets cancelled
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(duration):
-		return nil
-	}
+	// TODO: Implement waiting with context awareness
+	// Hint: Use select with ctx.Done() and time.After(duration)
+	// Return context error if cancelled, nil if duration completes
+	panic("implement me")
 }
 
 // Helper function - simulate work that can be cancelled
@@ -93,21 +85,7 @@ func SimulateWork(ctx context.Context, workDuration time.Duration, description s
 	// TODO: Implement cancellable work simulation
 	// Hint: Use select with ctx.Done() and time.After(workDuration)
 	// Print progress messages and respect cancellation
-	start := time.Now()
-	fmt.Println("start", description, start)
-	for time.Since(start) < workDuration {
-		time.Sleep(1 * time.Millisecond)
-		fmt.Println("working ", description, time.Since(start))
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			continue
-		}
-	}
-	fmt.Println("completed ", description, time.Since(start))
-	return nil
+	panic("implement me")
 }
 
 // Helper function - process multiple items with context
