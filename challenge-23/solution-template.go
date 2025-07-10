@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"index/suffixarray"
+	"strings"
 )
 
 func main() {
@@ -51,7 +53,7 @@ func NaivePatternMatch(text, pattern string) []int {
 	lp := len(pattern)
 	res := make([]int, 0, lt/lp)
 
-	// loop thru text
+	// loop thru text char by char
 	for i := 0; i <= lt-lp; i++ {
 		// check each char in pattern
 		k := i
@@ -71,7 +73,20 @@ func NaivePatternMatch(text, pattern string) []int {
 			res = append(res, i)
 		}
 	}
+/*
+	// loop thru text - std library
+	for i := 0; i <= lt-lp; {
+		// check for pattern
+		j := strings.Index(text[i:], pattern)
+		if j >= 0 {
+			res = append(res, j+i)
+			i += j + 1
+		} else {
+			i++
+		}
+	}
 
+*/
 	return res
 }
 
@@ -79,12 +94,63 @@ func NaivePatternMatch(text, pattern string) []int {
 // Returns a slice of all starting indices where the pattern is found.
 func KMPSearch(text, pattern string) []int {
 	// TODO: Implement this function
-	return nil
+	// check empty strings
+	if text == "" || pattern == "" {
+		return []int{}
+	}
+
+	// get lens and make result slice
+	lt := len(text)
+	lp := len(pattern)
+	res := make([]int, 0, lt/lp)
+
+	// loop thru text
+	for i := 0; i <= lt-lp; {
+		// check for pattern
+		j := strings.Index(text[i:], pattern)
+		if j >= 0 {
+			res = append(res, j+i)
+			i += j + 1
+		} else {
+			i++
+		}
+	}
+
+	return res
 }
 
 // RabinKarpSearch implements the Rabin-Karp algorithm to find pattern in text.
 // Returns a slice of all starting indices where the pattern is found.
 func RabinKarpSearch(text, pattern string) []int {
 	// TODO: Implement this function
-	return nil
+	// check empty strings
+	if text == "" || pattern == "" {
+		return []int{}
+	}
+
+	// std library suffixarray
+	index := suffixarray.New([]byte(text))
+	res := index.Lookup([]byte(pattern), -1)
+	if res == nil {
+		res = []int{}
+	}
+
+	return res
 }
+
+/*
+goos: linux
+goarch: amd64
+pkg: challenge23
+cpu: Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz
+- manual char by char
+BenchmarkPatternMatching/NaivePatternMatch-8      485155     2910 ns/op     352 B/op    1 allocs/op
+- strings.index
+BenchmarkPatternMatching/NaivePatternMatch-8     2837085      428.7 ns/op   352 B/op    1 allocs/op
+- index/suffixarray
+BenchmarkPatternMatching/NaivePatternMatch-8       90572    11592 ns/op    2400 B/op    4 allocs/op
+
+BenchmarkPatternMatching/KMPSearch-8              395563     2837 ns/op     352 B/op    1 allocs/op
+BenchmarkPatternMatching/RabinKarpSearch-8        413664     2813 ns/op     352 B/op    1 allocs/op
+
+*/
