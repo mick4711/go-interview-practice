@@ -11,13 +11,16 @@ import "fmt"
 // YOU MUST use concurrency (goroutines + channels) to pass the performance tests.
 func ConcurrentBFSQueries(graph map[int][]int, queries []int, numWorkers int) map[int][]int {
 	// TODO: Implement concurrency-based BFS for multiple queries.
-	// Return an empty map so the code compiles but fails tests if unchanged.
-	return map[int][]int{}
+	res := map[int][]int{}
+	for _, q := range queries {
+		res[q] = BFSQuery(graph, q)
+	}
+	return res
 }
 
 // get the path of all nodes connected to the root
-func BFS(graph map[int][]int, root int) []int {
-	// start with root iem at current level
+func BFSQuery(graph map[int][]int, root int) []int {
+	// start with root item at current level
 	Q := []int{root}
 	// track all items visited to avoid recursion
 	visited := make(map[int]bool)
@@ -54,10 +57,12 @@ func BFS(graph map[int][]int, root int) []int {
 			4: {},
 
 			get graph index root slice values
-		   Possible output:
-		   results[0] = [0 1 2 3 4]
-		   results[1] = [1 2 3 4]
-		   results[2] = [2 3 4]
+			queries := []int{0, 1, 2}
+
+			Possible output:
+			results[0] = [0 1 2 3 4]
+			results[1] = [1 2 3 4]
+			results[2] = [2 3 4]
 	*/
 }
 
@@ -70,10 +75,10 @@ func main() {
 		3: {4},
 		4: {},
 	}
-	// queries := []int{0, 1, 2}
-	query := 0
-
-	res := BFS(graph, query)
+	queries := []int{0, 1, 2}
+	res := ConcurrentBFSQueries(graph, queries, 0)
+	// query := 0
+	// res := BFSQuery(graph, query)
 
 	fmt.Println(res)
 }
