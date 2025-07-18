@@ -52,7 +52,7 @@ type Config struct {
 
 // CircuitBreaker interface defines the operations for a circuit breaker
 type CircuitBreaker interface {
-	Call(ctx context.Context, operation func() (any, error)) (any, error)
+	Call(ctx context.Context, operation func() (interface{}, error)) (interface{}, error)
 	GetState() State
 	GetMetrics() Metrics
 }
@@ -101,48 +101,15 @@ func NewCircuitBreaker(config Config) CircuitBreaker {
 }
 
 // Call executes the given operation through the circuit breaker
-func (cb *circuitBreakerImpl) Call(ctx context.Context, operation func() (any, error)) (any, error) {
+func (cb *circuitBreakerImpl) Call(ctx context.Context, operation func() (interface{}, error)) (interface{}, error) {
 	// TODO: Implement the main circuit breaker logic
 	// 1. Check current state and handle accordingly
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-	}
-
-	switch cb.state {
 	// 2. For StateClosed: execute operation and track metrics
-	case StateClosed:
-		return execute(operation, cb)
 	// 3. For StateOpen: check if timeout has passed, transition to half-open or fail fast
-	case StateOpen:
-		if time.Since(cb.lastStateChange) > cb.config.Timeout {
-			cb.setState(StateHalfOpen)
-			return execute(operation, cb)
-		}
-		return nil, ErrCircuitBreakerOpen
 	// 4. For StateHalfOpen: limit concurrent requests and handle state transitions
-	case StateHalfOpen:
-		if cb.halfOpenRequests > cb.config.MaxRequests {
-			return nil, ErrTooManyRequests
-		}
-		cb.halfOpenRequests++
-		return execute(operation, cb)
-	default:
-		return nil, errors.New("state: Unknown")
-	}
-
 	// 5. Update metrics and state based on operation result
-}
 
-func execute(operation func() (any, error), cb *circuitBreakerImpl) (any, error) {
-	res, err := operation()
-	if err != nil {
-		cb.recordFailure()
-		return res, err
-	}
-	cb.recordSuccess()
-	return res, err
+	return nil, errors.New("not implemented")
 }
 
 // GetState returns the current state of the circuit breaker
@@ -163,83 +130,53 @@ func (cb *circuitBreakerImpl) GetMetrics() Metrics {
 func (cb *circuitBreakerImpl) setState(newState State) {
 	// TODO: Implement state transition logic
 	// 1. Check if state actually changed
-	if cb.state == newState {
-		return
-	}
 	// 2. Update lastStateChange time
-	cb.lastStateChange = time.Now()
 	// 3. Reset appropriate metrics based on new state
-	switch newState {
-	case StateClosed:
-		cb.metrics = Metrics{} // reset all metrics
-	case StateHalfOpen:
-		cb.halfOpenRequests = 0
-	case StateOpen:
-		// cb.metrics.ConsecutiveFailures = 0
-	}
 	// 4. Call OnStateChange callback if configured
-	if cb.config.OnStateChange != nil {
-		cb.config.OnStateChange(fmt.Sprintf("state changed from %s to %s", cb.state, newState), cb.state, newState)
-	}
-
-	cb.state = newState
-
 	// 5. Handle half-open specific logic (reset halfOpenRequests)
 }
 
-// NOT USED
 // canExecute determines if a request can be executed in the current state
-// func (cb *circuitBreakerImpl) canExecute() error {
-// 	// 1. For StateClosed: always allow
-// 	// 2. For StateOpen: check if timeout has passed for transition to half-open
-// 	// 3. For StateHalfOpen: check if we've exceeded MaxRequests
+func (cb *circuitBreakerImpl) canExecute() error {
+	// TODO: Implement request execution permission logic
+	// 1. For StateClosed: always allow
+	// 2. For StateOpen: check if timeout has passed for transition to half-open
+	// 3. For StateHalfOpen: check if we've exceeded MaxRequests
 
-// 	return nil
-// }
+	return nil
+}
 
 // recordSuccess records a successful operation
 func (cb *circuitBreakerImpl) recordSuccess() {
+	// TODO: Implement success recording
 	// 1. Increment success and request counters
-	cb.metrics.Requests++
-	cb.metrics.Successes++
 	// 2. Reset consecutive failures
-	cb.metrics.ConsecutiveFailures = 0
-	if cb.state == StateHalfOpen {
-		cb.setState(StateClosed)
-	}
+	// 3. In half-open state, consider transitioning to closed
 }
 
 // recordFailure records a failed operation
 func (cb *circuitBreakerImpl) recordFailure() {
+	// TODO: Implement failure recording
 	// 1. Increment failure and request counters
-	cb.metrics.Requests++
-	cb.metrics.Failures++
 	// 2. Increment consecutive failures
-	cb.metrics.ConsecutiveFailures++
 	// 3. Update last failure time
-	cb.metrics.LastFailureTime = time.Now()
 	// 4. Check if circuit should trip (ReadyToTrip function)
-	if cb.shouldTrip() {
-		cb.setState(StateOpen)
-	}
 	// 5. In half-open state, transition back to open
-	if cb.state == StateHalfOpen {
-		cb.setState(StateOpen)
-	}
 }
 
 // shouldTrip determines if the circuit breaker should trip to open state
 func (cb *circuitBreakerImpl) shouldTrip() bool {
+	// TODO: Implement trip condition logic
 	// Use the ReadyToTrip function from config with current metrics
-	return cb.config.ReadyToTrip(cb.metrics)
+	return false
 }
 
-// NOT USED
 // isReady checks if the circuit breaker is ready to transition from open to half-open
-// func (cb *circuitBreakerImpl) isReady() bool {
-// 	// Check if enough time has passed since last state change (Timeout duration)
-// 	return false
-// }
+func (cb *circuitBreakerImpl) isReady() bool {
+	// TODO: Implement readiness check
+	// Check if enough time has passed since last state change (Timeout duration)
+	return false
+}
 
 // Example usage and testing helper functions
 func main() {
@@ -265,13 +202,13 @@ func main() {
 	ctx := context.Background()
 
 	// Successful operation
-	result, err := cb.Call(ctx, func() (any, error) {
+	result, err := cb.Call(ctx, func() (interface{}, error) {
 		return "success", nil
 	})
 	fmt.Printf("Result: %v, Error: %v\n", result, err)
 
 	// Failing operation
-	result, err = cb.Call(ctx, func() (any, error) {
+	result, err = cb.Call(ctx, func() (interface{}, error) {
 		return nil, errors.New("simulated failure")
 	})
 	fmt.Printf("Result: %v, Error: %v\n", result, err)
