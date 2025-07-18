@@ -4,6 +4,7 @@
 | 0xJaskirat | 6 | 6 |
 | AliNazariii | 6 | 6 |
 | Gandook | 6 | 6 |
+| JunLog | 6 | 6 |
 | K1tten2005 | 6 | 6 |
 | KhaledMosaad | 6 | 6 |
 | Mamsheikh | 6 | 6 |
@@ -14,6 +15,7 @@
 | YounesBouchbouk | 6 | 6 |
 | ZaharBorisenko | 6 | 6 |
 | ZakirAvrora | 6 | 6 |
+| arslanoktay | 6 | 6 |
 | ashwinipatankar | 6 | 6 |
 | bmeverett | 6 | 6 |
 | deloz | 6 | 6 |
