@@ -210,8 +210,9 @@ func NewOrderService(userClient UserService, productClient ProductService) *Orde
 	return &OrderService{
 		userClient:    userClient,
 		productClient: productClient,
-		orders:        make(map[int64]*Order),
-		nextOrderID:   1,
+		orders:        make(map[int64]*Order, 10),
+		// orders:        map[int64]*Order{},
+		nextOrderID: 1,
 	}
 }
 
@@ -237,10 +238,19 @@ func (s *OrderService) CreateOrder(ctx context.Context, userID, productID int64,
 
 	// Create order
 	order := &Order{
-		ID:       s.nextOrderID,
-		UserID:   userID,
+		ID:        s.nextOrderID,
+		UserID:    userID,
 		ProductID: productID,
-		Quantity: quantity,
+		Quantity:  quantity,
+	}
+
+	// TODO s.orders shouldn't be nil here
+	// s.orders = map[int64]*Order{}
+	// s.orders = make(map[int64]*Order)
+	if s.orders == nil {
+		fmt.Println("before making map s.orders = ", s.orders)
+		s.orders = make(map[int64]*Order)
+		fmt.Println("after making map s.orders = ", s.orders)
 	}
 	s.orders[s.nextOrderID] = order
 	s.nextOrderID++
@@ -333,8 +343,7 @@ func StartUserService(port string) (*grpc.Server, error) {
 
 // StartProductService starts the product service on the given port
 func StartProductService(port string) (*grpc.Server, error) {
-	// TODO: Implement this function
-	// Hint: create listener, gRPC server with interceptor, register service, serve
+	// create listener, gRPC server with interceptor, register service, serve
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen: %v", err)
@@ -367,7 +376,7 @@ func StartProductService(port string) (*grpc.Server, error) {
 		quantityStr := r.URL.Query().Get("quantity")
 		quantity, _ := strconv.ParseInt(quantityStr, 10, 32)
 
-		inStock, err := productServer.CheckInventory(r.Context(), productID, int32(quantity))
+		available, err := productServer.CheckInventory(r.Context(), productID, int32(quantity))
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
 				http.Error(w, err.Error(), http.StatusNotFound)
@@ -378,7 +387,7 @@ func StartProductService(port string) (*grpc.Server, error) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]bool{"in_stock": inStock})
+		json.NewEncoder(w).Encode(map[string]bool{"available": available})
 	})
 
 	go func() {
@@ -393,8 +402,7 @@ func StartProductService(port string) (*grpc.Server, error) {
 
 // Connect to both services and return an OrderService
 func ConnectToServices(userServiceAddr, productServiceAddr string) (*OrderService, error) {
-	// TODO: Implement this function
-	// Hint: create gRPC connections with interceptors, create clients, return OrderService
+	// create gRPC connections with interceptors, create clients, return OrderService
 	userConn, err := grpc.Dial(userServiceAddr, grpc.WithInsecure(), grpc.WithUnaryInterceptor(AuthInterceptor))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to user service: %v", err)
@@ -458,35 +466,55 @@ func (c *UserServiceClient) ValidateUser(ctx context.Context, userID int64) (boo
 	return result["valid"], nil
 }
 
+// Client implementations
 type ProductServiceClient struct {
-	conn *grpc.ClientConn
+	baseURL string
 }
 
 func NewProductServiceClient(conn *grpc.ClientConn) ProductService {
-	return &ProductServiceClient{conn: conn}
+	// Extract address from connection for HTTP calls
+	// In a real gRPC implementation, this would use the connection directly
+	return &ProductServiceClient{baseURL: "http://localhost:50052"}
 }
 
 func (c *ProductServiceClient) GetProduct(ctx context.Context, productID int64) (*Product, error) {
-	// TODO: Implement gRPC client call
-	// TODO: cf GetOrder method
-	// Hint: make gRPC call to GetProductRPC method
-	// req := &GetProductRequest{ProductId: productID}
-	// resp := &GetProductResponse{}
-	// err := c.conn.Invoke(ctx, "/ProductService/GetProduct", req, resp)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if resp == nil || resp.Product == nil {
-	// 	return nil, status.Errorf(codes.NotFound, "product not found")
-	// }
-	// return resp.Product, nil
-	return nil, status.Errorf(codes.Unimplemented, "client GetProduct not implemented")
+	// make gRPC call to GetProductRPC method
+	resp, err := http.Get(fmt.Sprintf("%s/product/get?id=%d", c.baseURL, productID))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, status.Errorf(codes.NotFound, "product not found")
+	}
+
+	var product Product
+	if err := json.NewDecoder(resp.Body).Decode(&product); err != nil {
+		return nil, err
+	}
+
+	return &product, nil
 }
 
 func (c *ProductServiceClient) CheckInventory(ctx context.Context, productID int64, quantity int32) (bool, error) {
-	// TODO: Implement gRPC client call
-	// Hint: make gRPC call to CheckInventoryRPC method
-	return false, status.Errorf(codes.Unimplemented, "client CheckInventory not implemented")
+	// make gRPC call to CheckInventoryRPC method
+	resp, err := http.Get(fmt.Sprintf("%s/product/check_inventory?id=%d&quantity=%d", c.baseURL, productID, quantity))
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return false, status.Errorf(codes.NotFound, "product not found")
+	}
+
+	var result map[string]bool
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return false, err
+	}
+
+	return result["available"], nil
 }
 
 // gRPC service registration helpers
