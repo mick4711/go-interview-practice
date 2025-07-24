@@ -4,13 +4,11 @@ package challenge8
 import (
 	"errors"
 	"sync"
-	// Add any other necessary imports
 )
 
 // Client represents a connected chat client
 type Client struct {
-	// TODO: Implement this struct
-	// Hint: username, message channel, mutex, disconnected flag
+	// username, message channel, mutex, disconnected flag
 	username     string
 	message      chan string
 	mutex        sync.Mutex
@@ -33,15 +31,13 @@ func (c *Client) Receive() string {
 
 // ChatServer manages client connections and message routing
 type ChatServer struct {
-	// TODO: Implement this struct
-	// Hint: clients map, mutex
+	// clients map, mutex
 	clients map[string]*Client
 	mutex   sync.Mutex
 }
 
 // NewChatServer creates a new chat server instance
 func NewChatServer() *ChatServer {
-	// TODO: Implement this function
 	return &ChatServer{
 		clients: make(map[string]*Client),
 	}
@@ -66,6 +62,7 @@ func (s *ChatServer) Connect(username string) (*Client, error) {
 func (s *ChatServer) Disconnect(client *Client) {
 	// TODO: Implement this method
 	// Hint: remove from map, close channels
+	delete(s.clients, client.username)
 }
 
 // Broadcast sends a message to all connected clients
