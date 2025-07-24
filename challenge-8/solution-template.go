@@ -36,7 +36,7 @@ type ChatServer struct {
 	// TODO: Implement this struct
 	// Hint: clients map, mutex
 	clients map[string]*Client
-	mutex sync.Mutex
+	mutex   sync.Mutex
 }
 
 // NewChatServer creates a new chat server instance
@@ -49,12 +49,16 @@ func NewChatServer() *ChatServer {
 
 // Connect adds a new client to the chat server
 func (s *ChatServer) Connect(username string) (*Client, error) {
-	// TODO: Implement this method
-	// Hint: check username, create client, add to map
+	// check username, create client, add to map
+	if _, ok := s.clients[username]; ok {
+		return nil, ErrUsernameAlreadyTaken
+	}
+
 	client := Client{
-		username: username,		
+		username: username,
 	}
 	s.clients[username] = &client
+
 	return &client, nil
 }
 
