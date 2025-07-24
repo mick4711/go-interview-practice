@@ -10,8 +10,9 @@ import (
 type Client struct {
 	// username, message channel, mutex, disconnected flag
 	username     string
-	message      chan string
-	mutex        sync.Mutex
+	messages     chan string
+	server       *ChatServer
+	mu           sync.Mutex
 	disconnected bool
 }
 
@@ -19,21 +20,29 @@ type Client struct {
 func (c *Client) Send(message string) {
 	// TODO: Implement this method
 	// Hint: thread-safe, non-blocking send
-	c.message <- message
+	c.messages <- message
 }
 
 // Receive returns the next message for the client (blocking)
 func (c *Client) Receive() string {
 	// TODO: Implement this method
 	// Hint: read from channel, handle closed channel
-	return <-c.message
+	return <-c.messages
+}
+
+type BroadcastMessage struct {
+	sender *Client
+	msg    string
 }
 
 // ChatServer manages client connections and message routing
 type ChatServer struct {
 	// clients map, mutex
-	clients map[string]*Client
-	mutex   sync.Mutex
+	clients    map[string]*Client
+	broadcast  chan BroadcastMessage
+	connect    chan *Client
+	disconnect chan *Client
+	mu         sync.Mutex
 }
 
 // NewChatServer creates a new chat server instance
@@ -50,12 +59,17 @@ func (s *ChatServer) Connect(username string) (*Client, error) {
 		return nil, ErrUsernameAlreadyTaken
 	}
 
-	client := Client{
-		username: username,
+	client := &Client{
+		username:     username,
+		messages:     make(chan string),
+		server:       s,
+		mu:           sync.Mutex{},
+		disconnected: false,
 	}
-	s.clients[username] = &client
+	s.clients[username] = client
+	// TODO  s.connect <- client
 
-	return &client, nil
+	return client, nil
 }
 
 // Disconnect removes a client from the chat server
