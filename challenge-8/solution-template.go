@@ -26,12 +26,15 @@ func (c *Client) Send(message string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	c.messages <- message
+	fmt.Printf("Client [%s] has been SENT message:[%s]\n", c.username, message)
 	// non-blocking
-	select {
-	case c.messages <- message:
-		fmt.Printf("Client [%s] has been SENT message:[%s]\n", c.username, message)
-	default:
-	}
+	// select {
+	// case c.messages <- message:
+	// 	fmt.Printf("Client [%s] has been SENT message:[%s]\n", c.username, message)
+	// default:
+	// 	fmt.Printf("default NOT sent\n")
+	// }
 }
 
 // Receive returns the next message for the client (blocking)
@@ -44,6 +47,15 @@ func (c *Client) Receive() string {
 
 	fmt.Printf("Client [%s] no more messages\n", c.username)
 	return "no more messages"
+
+	// select {
+	// case message := <-c.messages:
+	// 	fmt.Printf("Client [%s] RECEIVED message:[%s]\n", c.username, message)
+	// 	return message
+	// 	// fmt.Printf("Client [%s] has been SENT message:[%s]\n", c.username, message)
+	// default:
+	// 	return "no more messages"
+	// }
 }
 
 type BroadcastMessage struct {
@@ -80,7 +92,7 @@ func (s *ChatServer) Connect(username string) (*Client, error) {
 
 	client := &Client{
 		username:     username,
-		messages:     make(chan string,1), //TODO see if working with no buffer
+		messages:     make(chan string),
 		disconnected: false,
 	}
 	s.clients[username] = client
