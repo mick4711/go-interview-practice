@@ -1,13 +1,18 @@
 package regex
 
+import "regexp"
+
 // ExtractEmails extracts all valid email addresses from a text
 func ExtractEmails(text string) []string {
 	// TODO: Implement this function
+	// ^[a-z]+@[a-z]+\.[a-z]+$
 	// 1. Create a regular expression to match email addresses
+	var reEmail = regexp.MustCompile(`[a-z]+@[a-z]+\.[a-z]+`)
 	// 2. Find all matches in the input text
+	matches := reEmail.FindAllString(text, -1)
 	// 3. Return the matched emails as a slice of strings
 
-	return nil
+	return matches
 }
 
 // ValidatePhone checks if a string is a valid phone number in format (XXX) XXX-XXXX
