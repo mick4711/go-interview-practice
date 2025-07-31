@@ -19,12 +19,12 @@ func ExtractEmails(text string) []string {
 
 // ValidatePhone checks if a string is a valid phone number in format (XXX) XXX-XXXX
 func ValidatePhone(phone string) bool {
-	// TODO: Implement this function
 	// 1. Create a regular expression to match the specified phone format
+	rePhone := regexp.MustCompile(`^\(\d{3}\)\s\d{3}\-\d{4}$`)
+
 	// 2. Check if the input string matches the pattern
 	// 3. Return true if it's a match, false otherwise
-
-	return false
+	return rePhone.MatchString(phone)
 }
 
 // MaskCreditCard replaces all but the last 4 digits of a credit card number with "X"
