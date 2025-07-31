@@ -1,6 +1,9 @@
 package regex
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 // ExtractEmails extracts all valid email addresses from a text
 func ExtractEmails(text string) []string {
@@ -10,7 +13,7 @@ func ExtractEmails(text string) []string {
 	// 2. Find all matches in the input text
 	matches := reEmail.FindAllString(text, -1)
 	if matches == nil {
-		return  []string{}
+		return []string{}
 	}
 
 	// 3. Return the matched emails as a slice of strings
@@ -30,12 +33,24 @@ func ValidatePhone(phone string) bool {
 // MaskCreditCard replaces all but the last 4 digits of a credit card number with "X"
 // Example: "1234-5678-9012-3456" -> "XXXX-XXXX-XXXX-3456"
 func MaskCreditCard(cardNumber string) string {
-	// TODO: Implement this function
 	// 1. Create a regular expression to identify the parts of the card number to mask
-	// 2. Use ReplaceAllString or similar method to perform the replacement
-	// 3. Return the masked card number
+	re := regexp.MustCompile(`\w{4}`)
+	groups := re.FindAllString(cardNumber, -1)
 
-	return ""
+	// 2. Use ReplaceAllString or similar method to perform the replacement
+	mask := "XXXX"
+	for i, group := range groups {
+		if i == len(groups) - 1 {
+			break
+		}
+		if group == mask {
+			continue
+		}
+		cardNumber = strings.Replace(cardNumber, group, mask, 1)
+	}
+
+	// 3. Return the masked card number
+	return cardNumber
 }
 
 // ParseLogEntry parses a log entry with format:
