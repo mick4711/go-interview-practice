@@ -1,20 +1,13 @@
 package regex
 
-import "regexp"
-
 // ExtractEmails extracts all valid email addresses from a text
 func ExtractEmails(text string) []string {
+	// TODO: Implement this function
 	// 1. Create a regular expression to match email addresses
-	reEmail := regexp.MustCompile(`(\w+(\+|\-|\.)?\w+)+@(\w+(\+|\-|\.)?)+`)
-
 	// 2. Find all matches in the input text
-	matches := reEmail.FindAllString(text, -1)
-	if matches == nil {
-		return  []string{}
-	}
-
 	// 3. Return the matched emails as a slice of strings
-	return matches
+
+	return nil
 }
 
 // ValidatePhone checks if a string is a valid phone number in format (XXX) XXX-XXXX
