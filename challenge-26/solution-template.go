@@ -40,7 +40,7 @@ func MaskCreditCard(cardNumber string) string {
 	// 2. Use ReplaceAllString or similar method to perform the replacement
 	mask := "XXXX"
 	for i, group := range groups {
-		if i == len(groups) - 1 {
+		if i == len(groups)-1 {
 			break
 		}
 		if group == mask {
@@ -59,11 +59,33 @@ func MaskCreditCard(cardNumber string) string {
 func ParseLogEntry(logLine string) map[string]string {
 	// TODO: Implement this function
 	// 1. Create a regular expression with capture groups for each component
-	// 2. Use FindStringSubmatch to extract the components
-	// 3. Populate a map with the extracted values
-	// 4. Return the populated map
+	re := regexp.MustCompile(`^(\d{4}\-\d{2}\-\d{2})\s(\d{2}:\d{2}:\d{2})\s(\w+)\s(.+)$`)
 
-	return nil
+	// 2. Use FindStringSubmatch to extract the components
+	subs := re.FindStringSubmatch(logLine)
+	// 3. Populate a map with the extracted values
+	// var comps map[string]string
+	comps := make(map[string]string)
+	for i, sub := range subs {
+		switch i {
+		case 1:
+			comps["date"] = sub
+		case 2:
+			comps["time"] = sub
+		case 3:
+			comps["level"] = sub
+		case 4:
+			comps["message"] = sub
+		default:
+			continue
+		}
+	}
+	if len(comps) == 0 {
+		return nil
+	}
+
+	// 4. Return the populated map
+	return comps
 }
 
 // ExtractURLs extracts all valid URLs from a text
