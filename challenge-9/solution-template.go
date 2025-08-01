@@ -2,17 +2,18 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
+	// "encoding/json"
+	// "errors"
+	// "fmt"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/google/uuid"
+	// "strconv"
+	// "strings"
+	"sync"
+	// "time"
+	// "github.com/google/uuid"
 )
 
 // Book represents a book in the database
@@ -50,7 +51,34 @@ func NewInMemoryBookRepository() *InMemoryBookRepository {
 }
 
 // Implement BookRepository methods for InMemoryBookRepository
-// ...
+// TODO ...
+func (*InMemoryBookRepository) GetAll() ([]*Book, error) {
+	return nil, nil
+}
+
+func (*InMemoryBookRepository) GetByID(id string) (*Book, error) {
+	return nil, nil
+}
+
+func (*InMemoryBookRepository) Create(book *Book) error {
+	return nil
+}
+
+func (*InMemoryBookRepository) Update(id string, book *Book) error {
+	return nil
+}
+
+func (*InMemoryBookRepository) Delete(id string) error {
+	return nil
+}
+
+func (*InMemoryBookRepository) SearchByAuthor(author string) ([]*Book, error) {
+	return nil, nil
+}
+
+func (*InMemoryBookRepository) SearchByTitle(title string) ([]*Book, error) {
+	return nil, nil
+}
 
 // BookService defines the business logic for book operations
 type BookService interface {
@@ -76,7 +104,34 @@ func NewBookService(repo BookRepository) *DefaultBookService {
 }
 
 // Implement BookService methods for DefaultBookService
-// ...
+// TODO ...
+func (*DefaultBookService) GetAllBooks() ([]*Book, error) {
+	return nil, nil
+}
+
+func (*DefaultBookService) GetBookByID(id string) (*Book, error) {
+	return nil, nil
+}
+
+func (*DefaultBookService) CreateBook(book *Book) error {
+	return nil
+}
+
+func (*DefaultBookService) UpdateBook(id string, book *Book) error {
+	return nil
+}
+
+func (*DefaultBookService) DeleteBook(id string) error {
+	return nil
+}
+
+func (*DefaultBookService) SearchBooksByAuthor(author string) ([]*Book, error) {
+	return nil, nil
+}
+
+func (*DefaultBookService) SearchBooksByTitle(title string) ([]*Book, error) {
+	return nil, nil
+}
 
 // BookHandler handles HTTP requests for book operations
 type BookHandler struct {
@@ -94,6 +149,11 @@ func NewBookHandler(service BookService) *BookHandler {
 func (h *BookHandler) HandleBooks(w http.ResponseWriter, r *http.Request) {
 	// TODO: Implement this method to handle all book endpoints
 	// Use the path and method to determine the appropriate action
+	if r.URL.Path == "/api/books" {
+		res, _ := h.Service.GetAllBooks()
+		fmt.Println(res)
+		w.Write([]byte{})
+	}
 	// Call the service methods accordingly
 	// Return appropriate status codes and JSON responses
 }
@@ -122,4 +182,4 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-} 
+}
