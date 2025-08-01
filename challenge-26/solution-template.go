@@ -1,56 +1,34 @@
 package regex
 
-import (
-	"regexp"
-	"strings"
-)
-
 // ExtractEmails extracts all valid email addresses from a text
 func ExtractEmails(text string) []string {
+	// TODO: Implement this function
 	// 1. Create a regular expression to match email addresses
-	reEmail := regexp.MustCompile(`(\w+(\+|\-|\.)?\w+)+@(\w+(\+|\-|\.)?)+`)
-
 	// 2. Find all matches in the input text
-	matches := reEmail.FindAllString(text, -1)
-	if matches == nil {
-		return []string{}
-	}
-
 	// 3. Return the matched emails as a slice of strings
-	return matches
+
+	return nil
 }
 
 // ValidatePhone checks if a string is a valid phone number in format (XXX) XXX-XXXX
 func ValidatePhone(phone string) bool {
+	// TODO: Implement this function
 	// 1. Create a regular expression to match the specified phone format
-	rePhone := regexp.MustCompile(`^\(\d{3}\)\s\d{3}\-\d{4}$`)
-
 	// 2. Check if the input string matches the pattern
 	// 3. Return true if it's a match, false otherwise
-	return rePhone.MatchString(phone)
+
+	return false
 }
 
 // MaskCreditCard replaces all but the last 4 digits of a credit card number with "X"
 // Example: "1234-5678-9012-3456" -> "XXXX-XXXX-XXXX-3456"
 func MaskCreditCard(cardNumber string) string {
+	// TODO: Implement this function
 	// 1. Create a regular expression to identify the parts of the card number to mask
-	re := regexp.MustCompile(`\w{4}`)
-	groups := re.FindAllString(cardNumber, -1)
-
 	// 2. Use ReplaceAllString or similar method to perform the replacement
-	mask := "XXXX"
-	for i, group := range groups {
-		if i == len(groups)-1 {
-			break
-		}
-		if group == mask {
-			continue
-		}
-		cardNumber = strings.Replace(cardNumber, group, mask, 1)
-	}
-
 	// 3. Return the masked card number
-	return cardNumber
+
+	return ""
 }
 
 // ParseLogEntry parses a log entry with format:
@@ -59,33 +37,11 @@ func MaskCreditCard(cardNumber string) string {
 func ParseLogEntry(logLine string) map[string]string {
 	// TODO: Implement this function
 	// 1. Create a regular expression with capture groups for each component
-	re := regexp.MustCompile(`^(\d{4}\-\d{2}\-\d{2})\s(\d{2}:\d{2}:\d{2})\s(\w+)\s(.+)$`)
-
 	// 2. Use FindStringSubmatch to extract the components
-	subs := re.FindStringSubmatch(logLine)
 	// 3. Populate a map with the extracted values
-	// var comps map[string]string
-	comps := make(map[string]string)
-	for i, sub := range subs {
-		switch i {
-		case 1:
-			comps["date"] = sub
-		case 2:
-			comps["time"] = sub
-		case 3:
-			comps["level"] = sub
-		case 4:
-			comps["message"] = sub
-		default:
-			continue
-		}
-	}
-	if len(comps) == 0 {
-		return nil
-	}
-
 	// 4. Return the populated map
-	return comps
+
+	return nil
 }
 
 // ExtractURLs extracts all valid URLs from a text
