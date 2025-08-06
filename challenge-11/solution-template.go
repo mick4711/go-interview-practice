@@ -30,6 +30,10 @@ type ProcessedData struct {
 // ContentAggregator manages the concurrent fetching and processing of content
 type ContentAggregator struct {
 	// TODO: Add fields for fetcher, processor, worker count, rate limiter, etc.
+	Fetcher           ContentFetcher
+	Processor         ContentProcessor
+	WorkerCount       int
+	RequestsPerSecond int
 }
 
 // NewContentAggregator creates a new ContentAggregator with the specified configuration
@@ -39,8 +43,20 @@ func NewContentAggregator(
 	workerCount int,
 	requestsPerSecond int,
 ) *ContentAggregator {
-	// TODO: Initialize the ContentAggregator with the provided components
-	return nil
+	//validate inputs
+	if fetcher == nil ||
+		processor == nil ||
+		workerCount < 1 ||
+		requestsPerSecond < 1 {
+		return nil
+	}
+
+	return &ContentAggregator{
+		Fetcher:           fetcher,
+		Processor:         processor,
+		WorkerCount:       workerCount,
+		RequestsPerSecond: requestsPerSecond,
+	}
 }
 
 // FetchAndProcess concurrently fetches and processes content from multiple URLs
@@ -98,4 +114,4 @@ type HTMLProcessor struct {
 func (hp *HTMLProcessor) Process(ctx context.Context, content []byte) (ProcessedData, error) {
 	// TODO: Implement HTML processing logic
 	return ProcessedData{}, nil
-} 
+}
