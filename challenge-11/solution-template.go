@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
+
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 	// Add any necessary imports here
 )
 
@@ -141,12 +145,30 @@ type HTMLProcessor struct {
 // Process extracts structured data from HTML content
 func (hp *HTMLProcessor) Process(ctx context.Context, content []byte) (ProcessedData, error) {
 	// TODO: Implement HTML processing logic
-	processedData := ProcessedData{
-		Title:       "Test Page 1",
-		Description: "Description 1",
-		Keywords:    []string{"test", "page1"},
-		Timestamp:   time.Now(),
-		Source:      "https://example.com/1",
+	res := ProcessedData{}
+
+	doc, err := html.Parse(strings.NewReader(string(content)))
+	if err != nil {
+		return res, err
 	}
-	return processedData, nil
+
+	for n := range doc.Descendants() {
+		if n.Type == html.ElementNode && n.DataAtom == atom.Title {
+			res.Title = n.FirstChild.Data
+		}
+		if n.Type == html.ElementNode && n.DataAtom == atom.Meta {
+			if n.Attr[0].Val == "description" {
+				res.Description = n.Attr[1].Val
+			}
+			if n.Attr[0].Val == "keywords" {
+				res.Keywords = strings.Split(n.Attr[1].Val, ",")
+			}
+		}
+	}
+
+	if res.Title == "" && res.Description == "" && res.Keywords == nil {
+		return res, fmt.Errorf("no data")
+	}
+
+	return res, nil
 }
