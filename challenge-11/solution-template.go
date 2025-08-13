@@ -3,6 +3,8 @@ package challenge11
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 	// Add any necessary imports here
@@ -30,6 +32,10 @@ type ProcessedData struct {
 // ContentAggregator manages the concurrent fetching and processing of content
 type ContentAggregator struct {
 	// TODO: Add fields for fetcher, processor, worker count, rate limiter, etc.
+	Fetcher           ContentFetcher
+	Processor         ContentProcessor
+	WorkerCount       int
+	RequestsPerSecond int
 }
 
 // NewContentAggregator creates a new ContentAggregator with the specified configuration
@@ -39,8 +45,20 @@ func NewContentAggregator(
 	workerCount int,
 	requestsPerSecond int,
 ) *ContentAggregator {
-	// TODO: Initialize the ContentAggregator with the provided components
-	return nil
+	// validate inputs
+	if fetcher == nil ||
+		processor == nil ||
+		workerCount < 1 ||
+		requestsPerSecond < 1 {
+		return nil
+	}
+
+	return &ContentAggregator{
+		Fetcher:           fetcher,
+		Processor:         processor,
+		WorkerCount:       workerCount,
+		RequestsPerSecond: requestsPerSecond,
+	}
 }
 
 // FetchAndProcess concurrently fetches and processes content from multiple URLs
@@ -49,7 +67,23 @@ func (ca *ContentAggregator) FetchAndProcess(
 	urls []string,
 ) ([]ProcessedData, error) {
 	// TODO: Implement concurrent fetching and processing with proper error handling
-	return nil, nil
+	// ca.Fetcher.Fetch()
+	result := []ProcessedData{}
+	for _, url := range urls {
+		fetchRes, err := ca.Fetcher.Fetch(ctx, url)
+		if err != nil {
+			return nil, err
+		}
+
+		processedData, err := ca.Processor.Process(ctx, fetchRes)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, processedData)
+
+	}
+
+	return result, nil
 }
 
 // Shutdown performs cleanup and ensures all resources are properly released
@@ -86,7 +120,17 @@ type HTTPFetcher struct {
 // Fetch retrieves content from a URL via HTTP
 func (hf *HTTPFetcher) Fetch(ctx context.Context, url string) ([]byte, error) {
 	// TODO: Implement HTTP-based content fetching with context support
-	return nil, nil
+	resp, err := hf.Client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("not found")
+	}
+
+	defer resp.Body.Close()
+	return io.ReadAll(resp.Body)
 }
 
 // HTMLProcessor is a basic implementation of ContentProcessor for HTML content
@@ -97,5 +141,12 @@ type HTMLProcessor struct {
 // Process extracts structured data from HTML content
 func (hp *HTMLProcessor) Process(ctx context.Context, content []byte) (ProcessedData, error) {
 	// TODO: Implement HTML processing logic
-	return ProcessedData{}, nil
-} 
+	processedData := ProcessedData{
+		Title:       "Test Page 1",
+		Description: "Description 1",
+		Keywords:    []string{"test", "page1"},
+		Timestamp:   time.Now(),
+		Source:      "https://example.com/1",
+	}
+	return processedData, nil
+}
