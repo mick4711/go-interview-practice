@@ -462,3 +462,34 @@ func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	return response, nil
 }
+
+// TestHTMLProcessor tests the HTML implementation of ContentProcessor
+func TestMOH(t *testing.T) {
+	fetcher := &HTTPFetcher{Client: &http.Client{}}
+	processor := &HTMLProcessor{}
+	ca := NewContentAggregator(fetcher, processor, 3, 4)
+
+	urls := []string{
+		"https://google.com",
+		"http://www.testingmcafeesites.com/testcat_ac.html",
+		"http://www.testingmcafeesites.com/testcat_al.html",
+		"https://www.saucedemo.com/",
+		"https://parabank.parasoft.com/parabank/index.htm",
+		"https://magento.softwaretestingboard.com/",
+		"https://en.wikipedia.org/wiki/Main_Page",
+	}
+
+	res, err := ca.FetchAndProcess(context.Background(), urls)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(urls) != len(res) {
+		t.Errorf("result count = %d expected %d", len(res), len(urls))
+	}
+
+	for _, v := range res {
+		t.Log(v)
+		// fmt.Println(v)
+	}
+}

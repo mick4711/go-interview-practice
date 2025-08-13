@@ -11,7 +11,6 @@ import (
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	// Add any necessary imports here
 )
 
 // ContentFetcher defines an interface for fetching content from URLs
