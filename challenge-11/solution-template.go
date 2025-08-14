@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/html"
@@ -39,6 +40,7 @@ type ContentAggregator struct {
 	Processor         ContentProcessor
 	WorkerCount       int
 	RequestsPerSecond int
+	wg                sync.WaitGroup
 }
 
 // NewContentAggregator creates a new ContentAggregator with the specified configuration
@@ -70,23 +72,72 @@ func (ca *ContentAggregator) FetchAndProcess(
 	urls []string,
 ) ([]ProcessedData, error) {
 	// TODO: Implement concurrent fetching and processing with proper error handling
-	// ca.Fetcher.Fetch()
 	result := []ProcessedData{}
+
+	/*****************************************************
+	/********* sequential fetch & process ****************
+	/*****************************************************
+		for _, url := range urls {
+			fetchRes, err := ca.Fetcher.Fetch(ctx, url)
+			if err != nil {
+				return nil, err
+			}
+
+			processedData, err := ca.Processor.Process(ctx, fetchRes)
+			if err != nil {
+				return nil, err
+			}
+
+			result = append(result, processedData)
+		}
+	*****************************************************/
+
+	// put the urls in a channel
+	jobs := make(chan string, len(urls))
 	for _, url := range urls {
-		fetchRes, err := ca.Fetcher.Fetch(ctx, url)
-		if err != nil {
-			return nil, err
-		}
-
-		processedData, err := ca.Processor.Process(ctx, fetchRes)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, processedData)
-
+		jobs <- url
 	}
+	
+	// make a channel for url fetch results
+	// for each worker make a goroutine to fetch url into a channel
+
+	for range ca.WorkerCount {
+		// fetch
+		ca.wg.Add(1)
+		go func() {
+			defer ca.wg.Done()
+			// peel off next url from channel of urls
+			// fetchRes, err := ca.Fetcher.Fetch(ctx, url)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// push fetchRes to channel
+		}()
+	}
+	ca.wg.Wait()
 
 	return result, nil
+	/*
+			  jobs := make(chan string, len(urls))
+		    results := make(chan ProcessedData, len(urls))
+		    errors := make(chan error, len(urls))
+		    // Start workers
+		    ca.workerPool(ctx, jobs, results, errors)
+		    // Send jobs
+		    go func() {
+		        defer close(jobs)
+		        for _, url := range urls {
+		            select {
+		            case jobs <- url:
+		            case <-ctx.Done():
+		                return
+		            }
+		        }
+		    }()
+		    // Collect results
+		    // Implementation here...
+
+	*/
 }
 
 // Shutdown performs cleanup and ensures all resources are properly released
@@ -112,6 +163,21 @@ func (ca *ContentAggregator) fanOut(
 ) ([]ProcessedData, []error) {
 	// TODO: Implement fan-out, fan-in pattern
 	return nil, nil
+	/*
+			Could use for processing fetch results from workers one case for each worker
+			func fanIn(input1, input2 <-chan string) <-chan string {
+		    c := make(chan string)
+		    go func() {
+		        for {
+		            select {
+		            case s := <-input1:  c <- s
+		            case s := <-input2:  c <- s
+		            }
+		        }
+		    }()
+		    return c
+		}
+	*/
 }
 
 // HTTPFetcher is a simple implementation of ContentFetcher that uses HTTP
