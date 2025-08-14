@@ -97,8 +97,11 @@ func (ca *ContentAggregator) FetchAndProcess(
 	for _, url := range urls {
 		jobs <- url
 	}
-	
+	close(jobs)
+
 	// make a channel for url fetch results
+	results := make(chan ProcessedData, len(urls))
+	errors := make(chan error, len(urls))
 	// for each worker make a goroutine to fetch url into a channel
 
 	for range ca.WorkerCount {
@@ -106,15 +109,31 @@ func (ca *ContentAggregator) FetchAndProcess(
 		ca.wg.Add(1)
 		go func() {
 			defer ca.wg.Done()
-			// peel off next url from channel of urls
-			// fetchRes, err := ca.Fetcher.Fetch(ctx, url)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// push fetchRes to channel
+			for url := range jobs {
+				fetchRes, err := ca.Fetcher.Fetch(ctx, url)
+				if err != nil {
+					errors <- err
+				}
+
+				processedData, err := ca.Processor.Process(ctx, fetchRes)
+				if err != nil {
+					errors <- err
+				}
+				results <- processedData
+			}
 		}()
 	}
 	ca.wg.Wait()
+
+	close(results)
+	for processedData := range results {
+		result = append(result, processedData)
+	}
+
+	// for range len(urls) {
+	// 	processedData := <- results
+	// 	result = append(result, processedData)
+	// }
 
 	return result, nil
 	/*
