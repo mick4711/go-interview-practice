@@ -473,10 +473,10 @@ func TestMOH(t *testing.T) {
 		"https://google.com",
 		"http://www.testingmcafeesites.com/testcat_ac.html",
 		"http://www.testingmcafeesites.com/testcat_al.html",
+		"https://en.wikipedia.org/wiki/Main_Page",
 		"https://www.saucedemo.com/",
 		"https://parabank.parasoft.com/parabank/index.htm",
 		"https://magento.softwaretestingboard.com/",
-		"https://en.wikipedia.org/wiki/Main_Page",
 	}
 
 	res, err := ca.FetchAndProcess(context.Background(), urls)

@@ -94,48 +94,18 @@ func (ca *ContentAggregator) FetchAndProcess(
 
 	// put the urls in a channel
 	jobs := make(chan string, len(urls))
-	for _, url := range urls {
-		jobs <- url
-	}
-	close(jobs)
-
-	// make a channel for url fetch results
-	results := make(chan ProcessedData, len(urls))
-	errors := make(chan error, len(urls))
-	// for each worker make a goroutine to fetch url into a channel
-
-	for range ca.WorkerCount {
-		// fetch
-		ca.wg.Add(1)
-		go func() {
-			defer ca.wg.Done()
-			for url := range jobs {
-				fetchRes, err := ca.Fetcher.Fetch(ctx, url)
-				if err != nil {
-					errors <- err
-				}
-
-				processedData, err := ca.Processor.Process(ctx, fetchRes)
-				if err != nil {
-					errors <- err
-				}
-				results <- processedData
+	go func() {
+		defer close(jobs)
+		for _, url := range urls {
+			// jobs <- url
+			select {
+			case jobs <- url:
+			case <-ctx.Done():
+				return
 			}
-		}()
-	}
-	ca.wg.Wait()
-
-	close(results)
-	for processedData := range results {
-		result = append(result, processedData)
-	}
-
-	// for range len(urls) {
-	// 	processedData := <- results
-	// 	result = append(result, processedData)
-	// }
-
-	return result, nil
+		}
+	}()
+	// close(jobs)
 	/*
 			  jobs := make(chan string, len(urls))
 		    results := make(chan ProcessedData, len(urls))
@@ -157,6 +127,23 @@ func (ca *ContentAggregator) FetchAndProcess(
 		    // Implementation here...
 
 	*/
+
+	// make a channel for url fetch results
+	results := make(chan ProcessedData, len(urls))
+	errors := make(chan error, len(urls))
+
+	ca.workerPool(ctx, jobs, results, errors)
+	select {
+	case err := <-errors:
+		return result, err
+	default:
+	}
+
+	for processedData := range results {
+		result = append(result, processedData)
+	}
+
+	return result, nil
 }
 
 // Shutdown performs cleanup and ensures all resources are properly released
@@ -173,6 +160,51 @@ func (ca *ContentAggregator) workerPool(
 	errors chan<- error,
 ) {
 	// TODO: Implement worker pool logic
+	for range ca.WorkerCount {
+		// fetch
+		ca.wg.Add(1)
+		go func() {
+			defer ca.wg.Done()
+			for url := range jobs {
+				fetchRes, err := ca.Fetcher.Fetch(ctx, url)
+				if err != nil {
+					errors <- err
+					break
+				}
+
+				processedData, err := ca.Processor.Process(ctx, fetchRes)
+				if err != nil {
+					errors <- err
+					break
+				}
+				results <- processedData
+			}
+		}()
+	}
+	ca.wg.Wait()
+	/*
+			  jobs := make(chan string, len(urls))
+		    results := make(chan ProcessedData, len(urls))
+		    errors := make(chan error, len(urls))
+		    // Start workers
+		    ca.workerPool(ctx, jobs, results, errors)
+		    // Send jobs
+		    go func() {
+		        defer close(jobs)
+		        for _, url := range urls {
+		            select {
+		            case jobs <- url:
+		            case <-ctx.Done():
+		                return
+		            }
+		        }
+		    }()
+		    // Collect results
+		    // Implementation here...
+
+	*/
+
+	close(results)
 }
 
 // fanOut implements a fan-out, fan-in pattern for processing multiple items concurrently
